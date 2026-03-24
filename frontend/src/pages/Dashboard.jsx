@@ -1,5 +1,4 @@
 import { useEffect, useState, useContext } from 'react';
-import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import JobCard from '../components/JobCard';
 
@@ -8,8 +7,11 @@ export default function Dashboard() {
   const [jobs, setJobs] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/jobs', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-      .then(res => setJobs(res.data))
+    fetch('/api/jobs', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    })
+      .then(res => res.json())
+      .then(data => setJobs(Array.isArray(data?.data) ? data.data : []))
       .catch(err => console.log(err));
   }, []);
 
