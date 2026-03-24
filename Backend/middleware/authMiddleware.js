@@ -1,44 +1,22 @@
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-export function authenticate(req, res, next) {
-  const header = req.headers.authorization;
-  const token = header?.startsWith('Bearer ') ? header.slice(7) : null;
-  if (!token) {
-    return res.status(401).json({ message: 'Authentication required' });
-  }
-  try {
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      return res.status(500).json({ message: 'Server misconfiguration' });
-    }
-    const decoded = jwt.verify(token, secret);
-    req.userId = decoded.sub;
-    req.userRole = decoded.role;
-    next();
-  } catch {
-    return res.status(401).json({ message: 'Invalid or expired token' });
-  }
-}
+const protect = async (req, res, next) => {
+  let token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'Not authorized' });
 
-export async function loadUser(req, res, next) {
   try {
-    const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(401).json({ message: 'User not found' });
-    }
-    req.user = user;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.id).select('-password');
     next();
   } catch (err) {
-    return res.status(500).json({ message: 'Failed to load user' });
+    res.status(401).json({ message: 'Invalid token' });
   }
-}
+};
 
-export function requireRole(...roles) {
-  return (req, res, next) => {
-    if (!req.userRole || !roles.includes(req.userRole)) {
-      return res.status(403).json({ message: 'Forbidden' });
-    }
-    next();
-  };
-}
+const admin = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') next();
+  else res.status(403).json({ message: 'Admin access only' });
+};
+
+module.exports = { protect, admin };
