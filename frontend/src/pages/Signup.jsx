@@ -1,80 +1,38 @@
-import { useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import { useAuth } from '../context/AuthContext'
+import { useState, useContext } from 'react';
+import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Signup() {
-  const { signup, user } = useAuth()
-  const navigate = useNavigate()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const { login } = useContext(AuthContext);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [adminSecret, setAdminSecret] = useState('');
+  const navigate = useNavigate();
 
-  if (user) {
-    return <Navigate to={user.role === 'admin' ? '/admin' : '/'} replace />
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setLoading(true)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const data = await signup(name, email, password)
-      toast.success(data.message || 'Account created')
-      navigate('/', { replace: true })
+      const res = await axios.post('http://localhost:5000/api/auth/signup', { name, email, password, adminSecret });
+      login(res.data);
+      if(res.data.user.role === 'admin') navigate('/admin');
+      else navigate('/');
     } catch (err) {
-      toast.error(err.message)
-    } finally {
-      setLoading(false)
+      alert(err.response?.data?.message || 'Signup failed');
     }
-  }
+  };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <h1>Create account</h1>
-        <p className="muted">Sign up as a job seeker</p>
-        <form onSubmit={handleSubmit} className="form">
-          <label>
-            Name
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              maxLength={120}
-              autoComplete="name"
-            />
-          </label>
-          <label>
-            Email
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
-          </label>
-          <label>
-            Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              autoComplete="new-password"
-            />
-            <span className="hint">At least 8 characters</span>
-          </label>
-          <button type="submit" className="btn primary full" disabled={loading}>
-            {loading ? 'Creating…' : 'Sign up'}
-          </button>
-        </form>
-        <p className="auth-footer">
-          Already have an account? <Link to="/login">Log in</Link>
-        </p>
-      </div>
+    <div className="flex items-center justify-center h-screen">
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow w-96">
+        <h2 className="text-2xl font-bold mb-4">Signup</h2>
+        <input type="text" placeholder="Name" value={name} onChange={e => setName(e.target.value)} className="w-full p-2 mb-2 border rounded"/>
+        <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="w-full p-2 mb-2 border rounded"/>
+        <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-2 mb-2 border rounded"/>
+        <input type="text" placeholder="Admin Secret (Optional)" value={adminSecret} onChange={e => setAdminSecret(e.target.value)} className="w-full p-2 mb-4 border rounded"/>
+        <button className="w-full bg-green-500 text-white p-2 rounded">Signup</button>
+      </form>
     </div>
-  )
+  );
 }
