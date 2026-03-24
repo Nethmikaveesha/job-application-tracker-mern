@@ -1,5 +1,4 @@
 import { useState, useContext } from 'react';
-import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,12 +13,18 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/signup', { name, email, password, adminSecret });
-      login(res.data);
-      if(res.data.user.role === 'admin') navigate('/admin');
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, adminSecret }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || 'Signup failed');
+      login(data);
+      if (data.user.role === 'admin') navigate('/admin');
       else navigate('/');
     } catch (err) {
-      alert(err.response?.data?.message || 'Signup failed');
+      alert(err.message || 'Signup failed');
     }
   };
 
