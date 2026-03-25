@@ -1,41 +1,45 @@
-// import { useState } from 'react';
-// import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
-// /** Put your photo in `public/hero-job-application.png` (preferred) or replace `hero-job-application.jpg`. */
-// const HERO_PRIMARY = '/hero-job-application.png';
-// const HERO_FALLBACK = '/hero-job-application.jpg';
+const SOURCES = [
+  '/home-hero-full.png',
+  '/hero-typewriter.png',
+  '/hero-job-application.jpg',
+];
 
-// export default function HomePage() {
-//   const [heroSrc, setHeroSrc] = useState(HERO_PRIMARY);
+export default function HomePage() {
+  const [sourceIndex, setSourceIndex] = useState(0);
+  const src = SOURCES[sourceIndex];
 
-//   return (
-//     <section className="home-hero">
-//       <div className="home-hero-copy">
-//         <h1>Track every job application in one place</h1>
-//         <p>
-//           Stay organized from first apply to final offer. Manage roles, statuses, and follow-ups
-//           without losing track in spreadsheets or inboxes.
-//         </p>
-//         <div className="home-hero-actions">
-//           <Link to="/signup" className="public-btn public-btn--primary">
-//             Get started
-//           </Link>
-//           <Link to="/login" className="public-btn public-btn--outline">
-//             Log in
-//           </Link>
-//         </div>
-//       </div>
-//       <div className="home-hero-media">
-//         <img
-//           src={heroSrc}
-//           onError={() => setHeroSrc(HERO_FALLBACK)}
-//           alt="Vintage typewriter with paper reading JOB APPLICATION"
-//           width={800}
-//           height={600}
-//           loading="eager"
-//         />
-//       </div>
-//     </section>
-//   );
-// }
-
+  return (
+    <section className="home-full-page" aria-label="Welcome">
+      <img
+        className="home-full-img"
+        src={src}
+        alt="Vintage typewriter with paper reading JOB APPLICATION"
+        onError={
+          sourceIndex < SOURCES.length - 1
+            ? () => setSourceIndex((i) => i + 1)
+            : undefined
+        }
+        loading="eager"
+        decoding="async"
+        fetchPriority="high"
+      />
+      <div className="home-full-vignette" aria-hidden />
+      <div className="home-full-content">
+        <p className="home-full-tagline">
+          Organize every application from first send to final offer.
+        </p>
+        <div className="home-full-actions">
+          <Link to="/signup" className="home-hero-btn home-hero-btn--primary">
+            Get started free
+          </Link>
+          <Link to="/login" className="home-hero-btn home-hero-btn--ghost home-hero-btn--on-dark">
+            Log in
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}

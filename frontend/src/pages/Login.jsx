@@ -27,32 +27,63 @@ export default function Login() {
   };
 
   return (
-    <div className="auth-panel">
-      <form onSubmit={handleSubmit}>
-        <h2>Login</h2>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          autoComplete="email"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          autoComplete="current-password"
-        />
-        <button type="submit" className="btn-login">
-          Log in
-        </button>
-        <p style={{ marginTop: '1rem', marginBottom: 0, fontSize: '0.9rem', color: '#64748b' }}>
-          No account? <Link to="/signup">Sign up</Link>
-        </p>
-      </form>
+    <div className="auth-page">
+      <div className="auth-page-inner">
+        <aside className="auth-page-aside">
+          <p className="home-hero-kicker">Account</p>
+          <h1 className="auth-page-title">Welcome back</h1>
+          <p className="auth-page-lead">
+            Sign in to open your dashboard, browse roles, and keep every application in one place.
+          </p>
+          <Link to="/" className="auth-page-home">
+            ← Back to home
+          </Link>
+        </aside>
+
+        <div className="auth-card-shell">
+          <div className="auth-card-frame">
+            <div className="auth-card">
+              <p className="auth-card-kicker">JobTracker</p>
+              <h2>Log in</h2>
+              <p className="auth-card-subtitle">Use the email and password you registered with.</p>
+
+              <form onSubmit={handleSubmit}>
+                <div className="auth-field">
+                  <label htmlFor="login-email">Email</label>
+                  <input
+                    id="login-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                  />
+                </div>
+                <div className="auth-field">
+                  <label htmlFor="login-password">Password</label>
+                  <input
+                    id="login-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                  />
+                </div>
+                <button type="submit" className="auth-card-submit">
+                  Log in
+                </button>
+              </form>
+
+              <p className="auth-card-footer">
+                Don&apos;t have an account? <Link to="/signup">Create one</Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

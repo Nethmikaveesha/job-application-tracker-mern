@@ -31,3 +31,14 @@ export async function sendApplicationStatusEmail({
   await tx.sendMail({ from, to, subject, text });
   return { sent: true };
 }
+
+export async function sendContactFormEmail({ fromName, fromEmail, subject, message }) {
+  const tx = getTransporter();
+  const to = process.env.CONTACT_INBOX_EMAIL || process.env.SMTP_USER;
+  if (!tx || !to) return { sent: false, reason: 'SMTP or CONTACT_INBOX_EMAIL not configured' };
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const subj = `[JobTracker contact] ${subject}`;
+  const text = `From: ${fromName} <${fromEmail}>\n\n${message}`;
+  await tx.sendMail({ from, to, replyTo: fromEmail, subject: subj, text });
+  return { sent: true };
+}

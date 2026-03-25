@@ -126,7 +126,7 @@ export default function AdminApplications() {
                     </td>
                     <td>{new Date(a.appliedAt).toLocaleDateString()}</td>
                     <td>
-                      <Link to={`/applications/${a._id}`} className="link">
+                      <Link to={`/admin/applications/${a._id}`} className="link">
                         Open
                       </Link>
                     </td>

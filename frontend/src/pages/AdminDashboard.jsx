@@ -1,69 +1,166 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import JobCard from '../components/JobCard';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const [stats, setStats] = useState(null);
   const [jobs, setJobs] = useState([]);
+  const [jobsTotal, setJobsTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/jobs', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    async function load() {
+      setError('');
+      try {
+        const [statsRes, jobsRes] = await Promise.all([
+          api('/api/admin/stats'),
+          api('/api/jobs?limit=8&sort=newest&page=1'),
+        ]);
         if (!cancelled) {
-          setJobs(Array.isArray(data?.data) ? data.data : []);
-          setError('');
+          setStats(statsRes.data || null);
+          setJobs(Array.isArray(jobsRes.data) ? jobsRes.data : []);
+          setJobsTotal(jobsRes.pagination?.total ?? jobsRes.data?.length ?? 0);
         }
-      })
-      .catch(() => {
-        if (!cancelled) setError('Could not load jobs. Is the API running?');
-      })
-      .finally(() => {
+      } catch (e) {
+        if (!cancelled) {
+          const msg = e.message || 'Could not load overview.';
+          setError(msg);
+          toast.error(msg);
+        }
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    }
+    load();
     return () => {
       cancelled = true;
     };
   }, []);
 
-  return (
-    <div className="page">
-      <h1 className="admin-page-title">Admin — {user?.name}</h1>
-      <p className="muted">
-        All posted roles. Add jobs via your API or a future admin jobs UI. Job seekers see these on
-        Browse jobs.
-      </p>
+  if (loading) {
+    return (
+      <div className="page admin-dashboard">
+        <p className="muted">Loading overview…</p>
+      </div>
+    );
+  }
 
-      {loading && <p className="muted">Loading jobs…</p>}
-      {error && <p className="admin-empty">{error}</p>}
-
-      {!loading && !error && jobs.length === 0 && (
-        <div className="admin-empty">
+  if (error && !stats) {
+    return (
+      <div className="page admin-dashboard">
+        <header className="page-header">
+          <div>
+            <h1 className="admin-page-title">Overview</h1>
+            <p className="muted">Welcome back, {user?.name || 'admin'}.</p>
+          </div>
+          <Link to="/" className="btn secondary">
+            Marketing site
+          </Link>
+        </header>
+        <div className="admin-empty" role="alert">
+          <p>{error}</p>
           <p>
-            <strong>No jobs in the database yet.</strong>
-          </p>
-          <p>
-            Create jobs through MongoDB/Postman or ask your dev to use{' '}
-            <code>POST /api/jobs</code> (admin token required).
-          </p>
-          <p style={{ marginBottom: 0 }}>
             <Link to="/">← Back to site</Link>
           </p>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {!loading && jobs.length > 0 && (
-        <div className="card-grid jobs-grid" style={{ marginTop: '1.5rem' }}>
-          {jobs.map((job) => (
-            <JobCard key={job._id} job={job} />
-          ))}
+  const s = stats || {};
+
+  return (
+    <div className="page admin-dashboard">
+      <header className="page-header">
+        <div>
+          <h1 className="admin-page-title">Overview</h1>
+          <p className="muted">Welcome back, {user?.name || 'admin'}.</p>
+          <p className="muted admin-overview-subline">
+            Snapshot of registered accounts, open roles, and the application pipeline mirroring what
+            seekers see on their dashboard, at platform scale.
+          </p>
         </div>
+        <Link to="/" className="btn secondary">
+          Marketing site
+        </Link>
+      </header>
+
+      <section className="stats-grid" aria-label="Platform summary">
+        <div className="stat-card">
+          <span className="stat-label">Registered users</span>
+          <strong className="stat-value">{s.totalUsers ?? 0}</strong>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">Open roles</span>
+          <strong className="stat-value">{s.totalJobs ?? 0}</strong>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">Total applications</span>
+          <strong className="stat-value">{s.totalApplications ?? 0}</strong>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">Pending review</span>
+          <strong className="stat-value">{s.pending ?? 0}</strong>
+        </div>
+        <div className="stat-card success">
+          <span className="stat-label">Accepted</span>
+          <strong className="stat-value">{s.accepted ?? 0}</strong>
+        </div>
+        <div className="stat-card danger">
+          <span className="stat-label">Rejected</span>
+          <strong className="stat-value">{s.rejected ?? 0}</strong>
+        </div>
+      </section>
+
+      <p className="admin-page-lead admin-overview-lead">
+        New roles can be added with an admin token via Job seekers browse
+        the live list on{' '}
+        <Link to="/jobs" className="link">
+          Browse jobs
+        </Link>
+        .
+      </p>
+
+      {jobs.length === 0 ? (
+        <section className="admin-jobs-block" aria-label="Posted jobs">
+          <h2 className="admin-section-title">Recent open roles</h2>
+          <div className="admin-empty">
+            <p>
+              <strong>No jobs in the database yet.</strong>
+            </p>
+            <p>
+              Create jobs with a job seeker account 
+            </p>
+            <p>
+              <Link to="/">← Back to site</Link>
+            </p>
+          </div>
+        </section>
+      ) : (
+        <section className="admin-jobs-block section" aria-label="Posted jobs">
+          <div className="section-head">
+            <h2 className="admin-section-title">Recent open roles</h2>
+            <Link to="/jobs" className="link">
+              View as seeker
+            </Link>
+          </div>
+          {jobsTotal > jobs.length && (
+            <p className="muted admin-jobs-hint">
+              Showing {jobs.length} of {jobsTotal} roles (newest first).
+            </p>
+          )}
+          <div className="card-grid jobs-grid">
+            {jobs.map((job) => (
+              <JobCard key={job._id} job={job} />
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );

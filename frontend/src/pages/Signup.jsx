@@ -28,41 +28,79 @@ export default function Signup() {
   };
 
   return (
-    <div className="auth-panel">
-      <form onSubmit={handleSubmit}>
-        <h2>Create account</h2>
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          autoComplete="name"
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          autoComplete="email"
-        />
-        <input
-          type="password"
-          placeholder="Password (min 8 characters)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={8}
-          autoComplete="new-password"
-        />
-        <button type="submit" className="btn-signup">
-          Sign up
-        </button>
-        <p style={{ marginTop: '1rem', marginBottom: 0, fontSize: '0.9rem', color: '#64748b' }}>
-          Already have an account? <Link to="/login">Log in</Link>
-        </p>
-      </form>
+    <div className="auth-page">
+      <div className="auth-page-inner">
+        <aside className="auth-page-aside">
+          <p className="home-hero-kicker">Join</p>
+          <h1 className="auth-page-title">Start tracking today</h1>
+          <p className="auth-page-lead">
+            Create a free job seeker account to save applications, statuses, and notes in one calm
+            workspace.
+          </p>
+          <Link to="/" className="auth-page-home">
+            ← Back to home
+          </Link>
+        </aside>
+
+        <div className="auth-card-shell">
+          <div className="auth-card-frame">
+            <div className="auth-card">
+              <p className="auth-card-kicker">JobTracker</p>
+              <h2>Create account</h2>
+              <p className="auth-card-subtitle">
+                Password must be at least 8 characters. You can update your profile later.
+              </p>
+
+              <form onSubmit={handleSubmit}>
+                <div className="auth-field">
+                  <label htmlFor="signup-name">Full name</label>
+                  <input
+                    id="signup-name"
+                    type="text"
+                    placeholder="Jane Doe"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    autoComplete="name"
+                  />
+                </div>
+                <div className="auth-field">
+                  <label htmlFor="signup-email">Email</label>
+                  <input
+                    id="signup-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                  />
+                </div>
+                <div className="auth-field">
+                  <label htmlFor="signup-password">Password</label>
+                  <input
+                    id="signup-password"
+                    type="password"
+                    placeholder="At least 8 characters"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                  />
+                </div>
+                <button type="submit" className="auth-card-submit">
+                  Create account
+                </button>
+              </form>
+
+              <p className="auth-card-footer">
+                Already registered? <Link to="/login">Log in</Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

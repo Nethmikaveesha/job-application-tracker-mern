@@ -16,6 +16,9 @@ import ApplicationsPage from './pages/ApplicationsPage';
 import ApplicationDetail from './pages/ApplicationDetail';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminJobs from './pages/AdminJobs';
+import AdminUsers from './pages/AdminUsers';
+import AdminApplications from './pages/AdminApplications';
 
 function App() {
   return (
@@ -46,13 +49,18 @@ function App() {
         </Route>
 
         <Route
+          path="/admin"
           element={
             <ProtectedRoute adminOnly>
               <AdminShell />
             </ProtectedRoute>
           }
         >
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route index element={<AdminDashboard />} />
+          <Route path="jobs" element={<AdminJobs />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="applications" element={<AdminApplications />} />
+          <Route path="applications/:id" element={<ApplicationDetail />} />
         </Route>
       </Routes>
     </Router>
