@@ -42,3 +42,18 @@ export async function sendContactFormEmail({ fromName, fromEmail, subject, messa
   await tx.sendMail({ from, to, replyTo: fromEmail, subject: subj, text });
   return { sent: true };
 }
+
+export async function sendPasswordResetEmail({ to, applicantName, token }) {
+  const tx = getTransporter();
+  if (!tx) return { sent: false, reason: 'SMTP not configured' };
+
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const resetLink = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
+
+  const subject = 'Reset your password';
+  const text = `Hi ${applicantName},\n\nYou requested a password reset for Job Application Tracker.\n\nReset link:\n${resetLink}\n\nThis link expires soon.\n\nIf you did not request this, you can ignore this email.\n\n— Job Application Tracker`;
+
+  await tx.sendMail({ from, to, subject, text });
+  return { sent: true };
+}

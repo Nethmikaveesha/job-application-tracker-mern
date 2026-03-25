@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { api } from '../api/client'
+import { useAuth } from '../context/AuthContext'
 
 const types = [
   { value: '', label: 'All types' },
@@ -12,9 +13,11 @@ const types = [
 ]
 
 export default function JobsPage() {
+  const { user } = useAuth()
   const [jobs, setJobs] = useState([])
   const [pagination, setPagination] = useState({ page: 1, pages: 1 })
   const [loading, setLoading] = useState(true)
+  const [favoriteJobIds, setFavoriteJobIds] = useState(new Set())
   const [filters, setFilters] = useState({
     search: '',
     location: '',
@@ -47,6 +50,45 @@ export default function JobsPage() {
     load()
   }, [load])
 
+  useEffect(() => {
+    let cancelled = false
+    async function loadFavorites() {
+      try {
+        if (!user) return
+        const res = await api('/api/users/me/favorites')
+        const ids = Array.isArray(res.data) ? res.data.map((x) => String(x)) : []
+        if (!cancelled) setFavoriteJobIds(new Set(ids))
+      } catch (e) {
+        if (!cancelled) toast.error(e.message || 'Failed to load favorites')
+      }
+    }
+    loadFavorites()
+    return () => {
+      cancelled = true
+    }
+  }, [user])
+
+  async function toggleFavorite(jobId) {
+    if (!user) return
+    const idStr = String(jobId)
+    const isFav = favoriteJobIds.has(idStr)
+    try {
+      if (isFav) {
+        await api(`/api/users/me/favorites/${idStr}`, { method: 'DELETE' })
+      } else {
+        await api('/api/users/me/favorites', {
+          method: 'POST',
+          body: JSON.stringify({ jobId: idStr }),
+        })
+      }
+      const res = await api('/api/users/me/favorites')
+      const ids = Array.isArray(res.data) ? res.data.map((x) => String(x)) : []
+      setFavoriteJobIds(new Set(ids))
+    } catch (e) {
+      toast.error(e.message || 'Failed to update favorite')
+    }
+  }
+
   function submitFilter(e) {
     e.preventDefault()
     setFilters((f) => ({ ...f, page: 1 }))
@@ -64,9 +106,11 @@ export default function JobsPage() {
       <form className="filter-bar" onSubmit={submitFilter}>
         <input
           type="search"
+          className="filter-bar-search"
           placeholder="Search title, company…"
           value={filters.search}
           onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
+          aria-label="Search job title or company"
         />
         <input
           type="text"
@@ -119,6 +163,13 @@ export default function JobsPage() {
                   {(job.description || '').slice(0, 140)}
                   {(job.description || '').length > 140 ? '…' : ''}
                 </p>
+                <button
+                  type="button"
+                  className={favoriteJobIds.has(String(job._id)) ? 'btn primary ghost sm' : 'btn ghost sm'}
+                  onClick={() => toggleFavorite(job._id)}
+                >
+                  {favoriteJobIds.has(String(job._id)) ? 'Saved' : 'Save'}
+                </button>
                 <Link to={`/jobs/${job._id}/apply`} className="btn primary sm">
                   Apply
                 </Link>

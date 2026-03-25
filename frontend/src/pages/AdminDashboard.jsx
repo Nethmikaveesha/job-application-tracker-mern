@@ -8,6 +8,7 @@ import JobCard from '../components/JobCard';
 export default function AdminDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [jobsTotal, setJobsTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -18,12 +19,14 @@ export default function AdminDashboard() {
     async function load() {
       setError('');
       try {
-        const [statsRes, jobsRes] = await Promise.all([
+        const [statsRes, jobsRes, analyticsRes] = await Promise.all([
           api('/api/admin/stats'),
           api('/api/jobs?limit=8&sort=newest&page=1'),
+          api('/api/admin/analytics'),
         ]);
         if (!cancelled) {
           setStats(statsRes.data || null);
+          setAnalytics(analyticsRes.data || null);
           setJobs(Array.isArray(jobsRes.data) ? jobsRes.data : []);
           setJobsTotal(jobsRes.pagination?.total ?? jobsRes.data?.length ?? 0);
         }
@@ -117,6 +120,36 @@ export default function AdminDashboard() {
           <strong className="stat-value">{s.rejected ?? 0}</strong>
         </div>
       </section>
+
+      {analytics?.topAppliedJobs?.length ? (
+        <section className="admin-analytics-block" aria-label="Top applied jobs">
+          <div className="admin-analytics-grid">
+            <div className="admin-analytics-panel">
+              <h3>Top applied jobs</h3>
+              <div className="admin-analytics-table-wrap">
+                <table className="data-table data-table--compact">
+                  <thead>
+                    <tr>
+                      <th>Job</th>
+                      <th>Company</th>
+                      <th>Applications</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {analytics.topAppliedJobs.map((j) => (
+                      <tr key={j.jobId}>
+                        <td>{j.title}</td>
+                        <td>{j.company}</td>
+                        <td>{j.count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <p className="admin-page-lead admin-overview-lead">
         New roles can be added with an admin token via Job seekers browse

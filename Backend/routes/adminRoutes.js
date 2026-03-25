@@ -78,6 +78,28 @@ router.get('/analytics', async (_req, res) => {
       },
     ]);
 
+    const topAppliedJobs = await Application.aggregate([
+      {
+        $lookup: {
+          from: 'jobs',
+          localField: 'job',
+          foreignField: '_id',
+          as: 'jobDoc',
+        },
+      },
+      { $unwind: '$jobDoc' },
+      {
+        $group: {
+          _id: '$jobDoc._id',
+          title: { $first: '$jobDoc.title' },
+          company: { $first: '$jobDoc.company' },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { count: -1 } },
+      { $limit: 5 },
+    ]);
+
     return res.json({
       data: {
         applicationsPerCompany: byCompany.map((x) => ({
@@ -86,6 +108,12 @@ router.get('/analytics', async (_req, res) => {
         })),
         statusBreakdown: statusBreakdown.map((x) => ({
           status: x._id,
+          count: x.count,
+        })),
+        topAppliedJobs: topAppliedJobs.map((x) => ({
+          jobId: x._id,
+          title: x.title,
+          company: x.company,
           count: x.count,
         })),
       },

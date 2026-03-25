@@ -17,6 +17,12 @@ const userSchema = new mongoose.Schema(
       enum: ['admin', 'job_seeker'],
       default: 'job_seeker',
     },
+    favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Job', default: [] }],
+    isActive: { type: Boolean, default: true },
+    passwordResetToken: { type: String, default: '' },
+    passwordResetExpires: { type: Date, default: null },
+    twoFactorEnabled: { type: Boolean, default: false },
+    twoFactorSecret: { type: String, default: '' },
   },
   { timestamps: true }
 );

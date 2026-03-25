@@ -27,6 +27,9 @@ export async function loadUser(req, res, next) {
     if (!user) {
       return res.status(401).json({ message: 'User not found' });
     }
+    if (user.isActive === false) {
+      return res.status(403).json({ message: 'Account deactivated' });
+    }
     req.user = user;
     next();
   } catch (err) {

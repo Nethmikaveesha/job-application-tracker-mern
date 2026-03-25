@@ -458,6 +458,16 @@
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--white);
+  color: var(--ink);
+  box-sizing: border-box;
+}
+
+/* Same role as Jobs “Search title, company…” — one primary text filter */
+.filter-bar-search {
+  flex: 1 1 14rem;
+  min-width: min(14rem, 100%);
+  max-width: 24rem;
+  min-height: 2.75rem;
 }
 
 .btn {
@@ -908,6 +918,17 @@ textarea.full {
 
 .filter-bar.wrap {
   align-items: flex-end;
+}
+
+.filter-bar-select-label {
+  display: flex;
+  flex-direction: column;
+  min-width: min(18rem, 100%);
+}
+
+.filter-bar-select-label select {
+  min-width: 14rem;
+  max-width: 22rem;
 }
 
 .data-table td.actions {

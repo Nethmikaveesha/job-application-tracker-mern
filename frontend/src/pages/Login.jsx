@@ -6,15 +6,20 @@ export default function Login() {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [needs2FA, setNeeds2FA] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = needs2FA
+        ? { email, password, token: twoFactorCode }
+        : { email, password };
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.message || 'Login failed');
@@ -22,6 +27,10 @@ export default function Login() {
       if (data.user.role === 'admin') navigate('/admin');
       else navigate('/dashboard');
     } catch (err) {
+      if (err.message === '2FA required') {
+        setNeeds2FA(true);
+        return;
+      }
       alert(err.message || 'Login failed');
     }
   };
@@ -72,8 +81,22 @@ export default function Login() {
                     autoComplete="current-password"
                   />
                 </div>
+                {needs2FA && (
+                  <div className="auth-field">
+                    <label htmlFor="login-2fa">2FA code</label>
+                    <input
+                      id="login-2fa"
+                      type="text"
+                      placeholder="6-digit code"
+                      value={twoFactorCode}
+                      onChange={(e) => setTwoFactorCode(e.target.value)}
+                      required
+                      inputMode="numeric"
+                    />
+                  </div>
+                )}
                 <button type="submit" className="auth-card-submit">
-                  Log in
+                  {needs2FA ? 'Verify & log in' : 'Log in'}
                 </button>
               </form>
 

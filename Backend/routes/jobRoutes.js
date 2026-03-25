@@ -7,6 +7,7 @@ import {
   loadUser,
   requireRole,
 } from '../middleware/authMiddleware.js';
+import { recordAudit } from '../utils/audit.js';
 
 const router = Router();
 
@@ -76,6 +77,12 @@ router.post(
     body('title').trim().notEmpty().isLength({ max: 200 }),
     body('company').trim().notEmpty().isLength({ max: 120 }),
     body('location').optional().trim().isLength({ max: 120 }),
+    body('salary').optional().trim().isLength({ max: 50 }),
+    body('applicationDeadline')
+      .optional()
+      .isISO8601()
+      .withMessage('Invalid applicationDeadline'),
+    body('status').optional().isIn(['open', 'closed']),
     body('employmentType')
       .optional()
       .isIn(['full-time', 'part-time', 'contract', 'internship']),
@@ -87,6 +94,14 @@ router.post(
       const job = await Job.create({
         ...req.body,
         createdBy: req.user._id,
+      });
+      await recordAudit({
+        req,
+        adminId: req.user?._id,
+        action: 'create',
+        entityType: 'job',
+        entityId: String(job._id),
+        changes: { after: job },
       });
       return res.status(201).json({ message: 'Job created', data: job });
     } catch {
@@ -105,6 +120,12 @@ router.put(
     body('title').optional().trim().notEmpty().isLength({ max: 200 }),
     body('company').optional().trim().notEmpty().isLength({ max: 120 }),
     body('location').optional().trim().isLength({ max: 120 }),
+    body('salary').optional().trim().isLength({ max: 50 }),
+    body('applicationDeadline')
+      .optional()
+      .isISO8601()
+      .withMessage('Invalid applicationDeadline'),
+    body('status').optional().isIn(['open', 'closed']),
     body('employmentType')
       .optional()
       .isIn(['full-time', 'part-time', 'contract', 'internship']),
@@ -115,8 +136,17 @@ router.put(
     try {
       const job = await Job.findById(req.params.id);
       if (!job) return res.status(404).json({ message: 'Job not found' });
+      const prev = job.toObject();
       Object.assign(job, req.body);
       await job.save();
+      await recordAudit({
+        req,
+        adminId: req.user?._id,
+        action: 'update',
+        entityType: 'job',
+        entityId: String(job._id),
+        changes: { before: prev, after: req.body },
+      });
       return res.json({ message: 'Job updated', data: job });
     } catch {
       return res.status(500).json({ message: 'Failed to update job' });
@@ -135,6 +165,14 @@ router.delete(
     try {
       const job = await Job.findByIdAndDelete(req.params.id);
       if (!job) return res.status(404).json({ message: 'Job not found' });
+      await recordAudit({
+        req,
+        adminId: req.user?._id,
+        action: 'delete',
+        entityType: 'job',
+        entityId: String(job._id),
+        changes: {},
+      });
       return res.json({ message: 'Job deleted' });
     } catch {
       return res.status(500).json({ message: 'Failed to delete job' });

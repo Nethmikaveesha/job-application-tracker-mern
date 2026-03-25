@@ -29,6 +29,19 @@ export default function AdminUsers() {
     load()
   }, [load])
 
+  async function toggleActive(userId, isActive) {
+    try {
+      await api(`/api/users/${userId}/active`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive: !isActive }),
+      })
+      toast.success(isActive ? 'User deactivated' : 'User reactivated')
+      load()
+    } catch (e) {
+      toast.error(e.message)
+    }
+  }
+
   async function setRole(userId, role) {
     try {
       await api(`/api/users/${userId}/role`, {
@@ -93,6 +106,7 @@ export default function AdminUsers() {
                   <th>Name</th>
                   <th>Email</th>
                   <th>Role</th>
+                  <th>Status</th>
                   <th>Joined</th>
                   <th></th>
                 </tr>
@@ -112,8 +126,16 @@ export default function AdminUsers() {
                         <option value="admin">Admin</option>
                       </select>
                     </td>
+                    <td>{u.isActive ? 'Active' : 'Deactivated'}</td>
                     <td>{new Date(u.createdAt).toLocaleDateString()}</td>
                     <td>
+                      <button
+                        type="button"
+                        className="btn ghost sm"
+                        onClick={() => toggleActive(u._id, u.isActive)}
+                      >
+                        {u.isActive ? 'Deactivate' : 'Reactivate'}
+                      </button>{' '}
                       <button
                         type="button"
                         className="btn danger ghost sm"

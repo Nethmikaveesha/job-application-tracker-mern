@@ -5,6 +5,9 @@ const jobSchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true, maxlength: 200 },
     company: { type: String, required: true, trim: true, maxlength: 120 },
     location: { type: String, default: '', trim: true, maxlength: 120 },
+    salary: { type: String, default: '', trim: true, maxlength: 50 },
+    applicationDeadline: { type: Date, default: null },
+    status: { type: String, enum: ['open', 'closed'], default: 'open' },
     employmentType: {
       type: String,
       enum: ['full-time', 'part-time', 'contract', 'internship'],

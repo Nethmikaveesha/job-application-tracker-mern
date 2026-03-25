@@ -8,6 +8,8 @@ export default function ApplyPage() {
   const navigate = useNavigate()
   const [job, setJob] = useState(null)
   const [notes, setNotes] = useState('')
+  const [phone, setPhone] = useState('')
+  const [website, setWebsite] = useState('')
   const [resume, setResume] = useState(null)
   const [coverLetter, setCoverLetter] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -37,6 +39,8 @@ export default function ApplyPage() {
     const fd = new FormData()
     fd.append('jobId', jobId)
     fd.append('notes', notes)
+    if (phone.trim()) fd.append('phone', phone.trim())
+    if (website.trim()) fd.append('website', website.trim())
     if (resume) fd.append('resume', resume)
     if (coverLetter) fd.append('coverLetter', coverLetter)
 
@@ -87,6 +91,24 @@ export default function ApplyPage() {
             rows={4}
             maxLength={2000}
             placeholder="Why you are a good fit…"
+          />
+        </label>
+        <label>
+          Phone (optional)
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            maxLength={30}
+            placeholder="e.g. +1 555 123 4567"
+          />
+        </label>
+        <label>
+          Website (optional)
+          <input
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            maxLength={200}
+            placeholder="LinkedIn or portfolio URL"
           />
         </label>
         <label>

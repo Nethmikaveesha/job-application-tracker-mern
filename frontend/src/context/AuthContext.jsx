@@ -4,6 +4,7 @@ import {
   useCallback,
   useMemo,
   useContext,
+  useEffect,
 } from 'react';
 
 export const AuthContext = createContext(null);
@@ -59,6 +60,30 @@ export function AuthProvider({ children }) {
       /* ignore */
     }
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const INACTIVITY_MS = 1000 * 60 * 15; // 15 minutes
+    let timeoutId = null;
+
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        logout();
+      }, INACTIVITY_MS);
+    };
+
+    const events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
+    events.forEach((ev) => window.addEventListener(ev, resetTimer, { passive: true }));
+
+    resetTimer();
+
+    return () => {
+      events.forEach((ev) => window.removeEventListener(ev, resetTimer));
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [user, logout]);
 
   const value = useMemo(
     () => ({ user, login, logout, refresh }),

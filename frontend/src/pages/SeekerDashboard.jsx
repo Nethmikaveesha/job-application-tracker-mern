@@ -8,19 +8,36 @@ export default function SeekerDashboard() {
   const { user } = useAuth()
   const [stats, setStats] = useState(null)
   const [recent, setRecent] = useState([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
     async function load() {
       try {
-        const [s, apps] = await Promise.all([
+        const results = await Promise.allSettled([
           api('/api/applications/stats/me'),
           api('/api/applications?limit=5'),
+          api('/api/notifications?limit=5'),
         ])
-        if (!cancelled) {
-          setStats(s.data)
-          setRecent(apps.data || [])
+        if (cancelled) return
+
+        const [sRes, appsRes, nRes] = results
+
+        if (sRes.status === 'fulfilled') setStats(sRes.value.data)
+        else toast.error(sRes.reason?.message || 'Failed to load application stats')
+
+        if (appsRes.status === 'fulfilled') setRecent(appsRes.value.data || [])
+        else toast.error(appsRes.reason?.message || 'Failed to load recent applications')
+
+        if (nRes.status === 'fulfilled') {
+          setUnreadCount(nRes.value.unreadCount ?? 0)
+          setNotifications(Array.isArray(nRes.value.items) ? nRes.value.items : [])
+        } else {
+          // Notifications are optional for the dashboard; don't block stats/recent.
+          setUnreadCount(0)
+          setNotifications([])
         }
       } catch (e) {
         if (!cancelled) toast.error(e.message)
@@ -33,6 +50,23 @@ export default function SeekerDashboard() {
       cancelled = true
     }
   }, [])
+
+  async function markAllRead() {
+    try {
+      const res = await api('/api/notifications?limit=50')
+      const items = Array.isArray(res.items) ? res.items : []
+      const unread = items.filter((x) => !x.read)
+      await Promise.all(
+        unread.map((x) => api(`/api/notifications/${x._id}/read`, { method: 'PATCH' }))
+      )
+      const updated = await api('/api/notifications?limit=5')
+      setUnreadCount(updated.unreadCount ?? 0)
+      setNotifications(Array.isArray(updated.items) ? updated.items : [])
+      toast.success('Notifications marked as read')
+    } catch (e) {
+      toast.error(e.message || 'Failed to mark notifications as read')
+    }
+  }
 
   if (loading) {
     return (
@@ -48,6 +82,11 @@ export default function SeekerDashboard() {
         <div>
           <h1>Welcome, {user?.name || 'there'}</h1>
           <p className="muted">Track your job search at a glance</p>
+          {unreadCount > 0 ? (
+            <p className="muted">
+              You have <strong>{unreadCount}</strong> new notification{unreadCount === 1 ? '' : 's'}.
+            </p>
+          ) : null}
         </div>
         <Link to="/jobs" className="btn primary">
           Browse jobs
@@ -71,6 +110,30 @@ export default function SeekerDashboard() {
           <span className="stat-label">Rejected</span>
           <strong className="stat-value">{stats?.rejected ?? 0}</strong>
         </div>
+      </section>
+
+      <section className="section">
+        <div className="section-head">
+          <h2>Notifications</h2>
+          {unreadCount > 0 ? (
+            <button type="button" className="btn ghost sm" onClick={markAllRead}>
+              Mark all read
+            </button>
+          ) : null}
+        </div>
+        {notifications.length === 0 ? (
+          <p className="muted empty-hint">No notifications yet.</p>
+        ) : (
+          <div className="prose">
+            <ul>
+              {notifications.map((n) => (
+                <li key={n._id}>
+                  <strong>{n.read ? 'Read' : 'New'}:</strong> {n.message}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
 
       <section className="section">

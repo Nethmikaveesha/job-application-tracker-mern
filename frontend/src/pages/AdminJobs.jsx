@@ -6,6 +6,9 @@ const emptyForm = {
   title: '',
   company: '',
   location: '',
+  salary: '',
+  applicationDeadline: '',
+  status: 'open',
   employmentType: 'full-time',
   description: '',
 }
@@ -43,6 +46,11 @@ export default function AdminJobs() {
       title: job.title,
       company: job.company,
       location: job.location || '',
+      salary: job.salary || '',
+      applicationDeadline: job.applicationDeadline
+        ? new Date(job.applicationDeadline).toISOString().slice(0, 10)
+        : '',
+      status: job.status || 'open',
       employmentType: job.employmentType,
       description: job.description || '',
     })
@@ -130,6 +138,35 @@ export default function AdminJobs() {
             />
           </label>
           <label>
+            Salary
+            <input
+              value={form.salary}
+              onChange={(e) => setForm((f) => ({ ...f, salary: e.target.value }))}
+              maxLength={50}
+              placeholder="e.g. 100000 - 120000"
+            />
+          </label>
+          <label>
+            Application deadline
+            <input
+              type="date"
+              value={form.applicationDeadline}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, applicationDeadline: e.target.value }))
+              }
+            />
+          </label>
+          <label>
+            Job status
+            <select
+              value={form.status}
+              onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
+            >
+              <option value="open">Open</option>
+              <option value="closed">Closed</option>
+            </select>
+          </label>
+          <label>
             Employment type
             <select
               value={form.employmentType}
@@ -179,6 +216,9 @@ export default function AdminJobs() {
                   <th>Company</th>
                   <th>Location</th>
                   <th>Type</th>
+                  <th>Salary</th>
+                  <th>Deadline</th>
+                  <th>Status</th>
                   <th></th>
                 </tr>
               </thead>
@@ -189,6 +229,13 @@ export default function AdminJobs() {
                     <td>{job.company}</td>
                     <td>{job.location || '—'}</td>
                     <td>{job.employmentType}</td>
+                    <td>{job.salary || '—'}</td>
+                    <td>
+                      {job.applicationDeadline
+                        ? new Date(job.applicationDeadline).toLocaleDateString()
+                        : '—'}
+                    </td>
+                    <td>{job.status || 'open'}</td>
                     <td className="actions">
                       <button
                         type="button"
