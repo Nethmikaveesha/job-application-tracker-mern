@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import PublicLayout from './components/PublicLayout';
 import ProtectedRoute from './components/ProtectedRoute';
+import SeekerShell from './components/SeekerShell';
+import AdminShell from './components/AdminShell';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import ServicesPage from './pages/ServicesPage';
@@ -8,6 +10,11 @@ import ContactPage from './pages/ContactPage';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import JobsPage from './pages/JobsPage';
+import ApplyPage from './pages/ApplyPage';
+import ApplicationsPage from './pages/ApplicationsPage';
+import ApplicationDetail from './pages/ApplicationDetail';
+import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
@@ -24,21 +31,29 @@ function App() {
         </Route>
 
         <Route
-          path="/dashboard"
           element={
-            <ProtectedRoute>
-              <Dashboard />
+            <ProtectedRoute seekerOnly>
+              <SeekerShell />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/jobs" element={<JobsPage />} />
+          <Route path="/jobs/:jobId/apply" element={<ApplyPage />} />
+          <Route path="/applications" element={<ApplicationsPage />} />
+          <Route path="/applications/:id" element={<ApplicationDetail />} />
+          <Route path="/profile" element={<Profile />} />
+        </Route>
+
         <Route
-          path="/admin"
           element={
             <ProtectedRoute adminOnly>
-              <AdminDashboard />
+              <AdminShell />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route path="/admin" element={<AdminDashboard />} />
+        </Route>
       </Routes>
     </Router>
   );

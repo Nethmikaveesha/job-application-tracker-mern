@@ -1,12 +1,11 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 const navClass = ({ isActive }) =>
   isActive ? 'public-nav-link public-nav-link--active' : 'public-nav-link';
 
 export default function PublicHeader() {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   return (

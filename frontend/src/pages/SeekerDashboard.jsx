@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { api } from '../api/client'
+import { useAuth } from '../context/AuthContext'
 
 export default function SeekerDashboard() {
+  const { user } = useAuth()
   const [stats, setStats] = useState(null)
   const [recent, setRecent] = useState([])
   const [loading, setLoading] = useState(true)
@@ -44,7 +46,7 @@ export default function SeekerDashboard() {
     <div className="page">
       <header className="page-header">
         <div>
-          <h1>Dashboard</h1>
+          <h1>Welcome, {user?.name || 'there'}</h1>
           <p className="muted">Track your job search at a glance</p>
         </div>
         <Link to="/jobs" className="btn primary">

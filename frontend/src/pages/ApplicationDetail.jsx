@@ -81,7 +81,7 @@ export default function ApplicationDetail() {
     try {
       await api(`/api/applications/${id}`, { method: 'DELETE' })
       toast.success('Application removed')
-      navigate(isAdmin ? '/admin/applications' : '/applications')
+      navigate(isAdmin ? '/admin' : '/applications')
     } catch (e) {
       toast.error(e.message)
     }
@@ -96,7 +96,7 @@ export default function ApplicationDetail() {
   return (
     <div className="page narrow">
       <Link
-        to={isAdmin ? '/admin/applications' : '/applications'}
+        to={isAdmin ? '/admin' : '/applications'}
         className="back-link"
       >
         ← Back
