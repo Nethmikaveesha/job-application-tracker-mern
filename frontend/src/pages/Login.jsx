@@ -1,6 +1,6 @@
 import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function Login() {
   const { login } = useContext(AuthContext);
@@ -20,19 +20,38 @@ export default function Login() {
       if (!res.ok) throw new Error(data.message || 'Login failed');
       login(data);
       if (data.user.role === 'admin') navigate('/admin');
-      else navigate('/');
+      else navigate('/dashboard');
     } catch (err) {
       alert(err.message || 'Login failed');
     }
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow w-96">
-        <h2 className="text-2xl font-bold mb-4">Login</h2>
-        <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="w-full p-2 mb-2 border rounded"/>
-        <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-2 mb-4 border rounded"/>
-        <button className="w-full bg-blue-500 text-white p-2 rounded">Login</button>
+    <div className="auth-panel">
+      <form onSubmit={handleSubmit}>
+        <h2>Login</h2>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoComplete="email"
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          autoComplete="current-password"
+        />
+        <button type="submit" className="btn-login">
+          Log in
+        </button>
+        <p style={{ marginTop: '1rem', marginBottom: 0, fontSize: '0.9rem', color: '#64748b' }}>
+          No account? <Link to="/signup">Sign up</Link>
+        </p>
       </form>
     </div>
   );

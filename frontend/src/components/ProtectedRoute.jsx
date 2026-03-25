@@ -1,25 +1,17 @@
-import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { Navigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 
-export function ProtectedRoute({ children, adminOnly }) {
-  const { user, ready } = useAuth()
-  const loc = useLocation()
-
-  if (!ready) {
-    return (
-      <div className="loading-screen">
-        <p>Loading…</p>
-      </div>
-    )
-  }
+export default function ProtectedRoute({ children, adminOnly }) {
+  const { user } = useContext(AuthContext);
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: loc }} replace />
+    return <Navigate to="/login" replace />;
   }
 
   if (adminOnly && user.role !== 'admin') {
-    return <Navigate to="/" replace />
+    return <Navigate to="/dashboard" replace />;
   }
 
-  return children
+  return children;
 }
