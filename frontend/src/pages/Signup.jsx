@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 
 export default function Signup() {
-  const { login } = useAuth();
+  const { logout } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,13 +15,22 @@ export default function Signup() {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          password,
+        }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.message || 'Signup failed');
-      login(data);
-      if (data.user.role === 'admin') navigate('/admin');
-      else navigate('/dashboard');
+      if (!res.ok) {
+        const details = Array.isArray(data.errors) && data.errors.length > 0
+          ? data.errors[0]?.msg
+          : null;
+        throw new Error(details || data.message || 'Signup failed');
+      }
+      // Require an explicit login after account creation.
+      logout();
+      navigate('/login');
     } catch (err) {
       alert(err.message || 'Signup failed');
     }
@@ -48,7 +57,7 @@ export default function Signup() {
               <p className="auth-card-kicker">JobTracker</p>
               <h2>Create account</h2>
               <p className="auth-card-subtitle">
-                Password must be at least 8 characters. You can update your profile later.
+                Use 8+ characters with uppercase, lowercase, and a number.
               </p>
 
               <form onSubmit={handleSubmit}>
@@ -81,11 +90,13 @@ export default function Signup() {
                   <input
                     id="signup-password"
                     type="password"
-                    placeholder="At least 8 characters"
+                    placeholder="Example: Example123"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={8}
+                    pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}"
+                    title="Use at least 8 characters with uppercase, lowercase, and a number."
                     autoComplete="new-password"
                   />
                 </div>
